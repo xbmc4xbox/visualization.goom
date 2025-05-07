@@ -203,7 +203,7 @@ extern "C" void Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, con
 //-- Audiodata ----------------------------------------------------------------
 // Called by XBMC to pass new audio data to the vis
 //-----------------------------------------------------------------------------
-extern "C" void AudioData(const short* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
+extern "C" void AudioData(const float* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
 {
 	memset(m_sData,0,sizeof(m_sData));
 	int ipos=0;
@@ -211,16 +211,14 @@ extern "C" void AudioData(const short* pAudioData, int iAudioDataLength, float *
   {
 	  for (int i=0; i < iAudioDataLength; i+=2)
 	  {
-		  m_sData[0][ipos]=2*pAudioData[i];
-		  if (pAudioData[i]>16383)
-			  m_sData[0][ipos] = 32767;
-		  if (pAudioData[i]<-16384)
-			  m_sData[0][ipos] = -32768;
-		  m_sData[1][ipos]=2*pAudioData[i+1];
-		  if (pAudioData[i+1]>16383)
-			  m_sData[1][ipos] = 32767;
-		  if (pAudioData[i+1]<-16384)
-			  m_sData[1][ipos] = -32768;
+		  float sampleL = pAudioData[i] * 32768.0f;
+		  if (sampleL > 32767.0f) sampleL = 32767.0f;
+		  if (sampleL < -32768.0f) sampleL = -32768.0f;
+		  m_sData[0][ipos] = static_cast<short>(sampleL);
+		  float sampleR = pAudioData[i + 1] * 32768.0f;
+		  if (sampleR > 32767.0f) sampleR = 32767.0f;
+		  if (sampleR < -32768.0f) sampleR = -32768.0f;
+		  m_sData[1][ipos] = static_cast<short>(sampleR);
 		  ipos++;
 		  if (ipos >= 512) break;
 	  }
